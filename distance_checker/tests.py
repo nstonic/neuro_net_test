@@ -3,7 +3,7 @@ import pytest
 from main import app
 
 success_cases = [
-    ({'address': 'Обводное шоссе, 10, посёлок Рублёво, Москва, 121500'}, 0.66, False),
+    ({'address': 'Обводное шоссе, 10, посёлок Рублёво, Москва, 121500'}, 0.7, False),
     ({'address': 'проспект Ленина, 82к3, Балашиха, Московская область'}, 9.2, False),
     ({'address': 'Нижний Новгород, ул. Полтавская, д. 30'}, 389, False),
     ({'address': 'Зелёный проспект, 20, Москва, 111397'}, None, True),
@@ -28,7 +28,7 @@ def test_check_success(data: dict, distance: float, is_in_mkad: bool):
     json_ = response.json
 
     if distance is not None:
-        assert (distance * 0.90) < json_['distance'] < (distance * 1.10)
+        assert (distance * 0.95) < json_['distance'] < (distance * 1.05)
     else:
         assert json_['distance'] is None
 
