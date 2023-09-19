@@ -49,3 +49,4 @@ def test_check_errors(data: dict):
 
     json_ = response.json
     assert json_['success'] is False
+    assert isinstance(json_['error'], str)
