@@ -7,8 +7,6 @@ from geopy import Point
 
 from geopy.distance import distance
 from pydantic import BaseModel
-from pyproj import Geod
-from shapely import LineString
 
 env = Env()
 env.read_env()
@@ -138,7 +136,7 @@ class GeoObject(BaseModel):
         self.point = self._get_point(GEO_CODER_APIKEY)
         self.is_in_mkad = self._in_mkad()
 
-    def _get_point(self, api_key) -> Point:
+    def _get_point(self, api_key: str) -> Point:
         base_url = 'https://geocode-maps.yandex.ru/1.x'
         response = requests.get(
             base_url,
@@ -169,6 +167,7 @@ class GeoObject(BaseModel):
         )
 
     def get_distance_from_mkad(self) -> float:
+        # Находим 2 ближайшие к нашему адресу точки на МКАДе
         distances = [
             (node, distance(node, self.point))
             for node in MKAD_POLYGON
@@ -178,17 +177,26 @@ class GeoObject(BaseModel):
             key=lambda x: x[1],
         )[:2]
 
-        # Немного школьной геометрии
+        # Получили треугольник со сторонами a, b, c, где a - сегмент МКАДа
         a = distance(closest[0][0], closest[1][0]).km
         b = closest[0][1].km
         c = closest[1][1].km
-        if b ** 2 > (a ** 2 + c ** 2):
+
+        # Немного школьной геометрии.
+        # Схема https://disk.yandex.ru/i/_gp6y0RgI55p0g
+        # Если одно из рёбер b или c образует с ребром a тупой угол,
+        # то длина этого ребра - и есть искомое расстояние
+        if b ** 2 >= (a ** 2 + c ** 2):
             return c
-        elif c ** 2 > (a ** 2 + b ** 2):
+        elif c ** 2 >= (a ** 2 + b ** 2):
             return b
+        # В противном случае ищем высоту треугольника h опущенную на ребро а:
+        # h = 2S/a
+        # где S - площадь треугольника. Находим ее по формуле от полупериметра
         else:
             p = (a + b + c) / 2
-            return 2 * ((p * (p - a) * (p - b) * (p - c)) ** 0.5) / a
+            s = ((p * (p - a) * (p - b) * (p - c)) ** 0.5)
+            return 2 * s / a
 
 
 class ObjectNotFound(Exception):
