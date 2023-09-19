@@ -20,15 +20,23 @@ address_checker = Blueprint('distance_from_mkad', __name__)
 @address_checker.route('/', methods=['POST'])
 def check():
     input_json = request.get_json()
+    data = {
+        'success': False,
+        'error': None,
+        'data': {}
+    }
 
     try:
         point = GeoObject.model_validate(input_json)
     except ValidationError:
-        return {"success": False, "error": "JSON is not valid"}, 400
+        data['error'] = 'JSON is not valid'
+        return data, 400
     except ObjectNotFound:
-        return {"success": False, "error": "Object is not exists in this world"}, 400
+        data['error'] = "Object doesn't exist in that world"
+        return data, 400
     except HTTPError:
-        return {"success": False, "error": "GeoCoder error"}, 415
+        data['error'] = 'GeoCoder error'
+        return data, 415
 
     if point.is_in_mkad:
         distance = None
@@ -37,4 +45,11 @@ def check():
         distance = point.get_distance_from_mkad()
         logging.debug(f'Проверка адреса: {point.address}. Расстояние до МКАД: {distance:.2f} км')
 
-    return {"success": True, "is_in_mkad": point.is_in_mkad, "distance": distance}
+    data.update({
+        'success': True,
+        'data': {
+            'is_in_mkad': point.is_in_mkad,
+            'distance': distance,
+        }
+    })
+    return data

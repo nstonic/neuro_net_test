@@ -28,11 +28,11 @@ def test_check_success(data: dict, distance: float, is_in_mkad: bool):
     json_ = response.json
 
     if distance is not None:
-        assert (distance * 0.95) < json_['distance'] < (distance * 1.05)
+        assert (distance * 0.95) < json_['data']['distance'] < (distance * 1.05)
     else:
-        assert json_['distance'] is None
+        assert json_['data']['distance'] is None
 
-    assert json_['is_in_mkad'] == is_in_mkad
+    assert json_['data']['is_in_mkad'] == is_in_mkad
     assert json_['success'] is True
 
 
