@@ -9,11 +9,15 @@ pip install -r requirements.txt
 ```
 
 Получите ключ разработчика [Яндекс API Геокодера](https://yandex.ru/dev/maps/geocoder/doc/desc/concepts/about.html) \
+Задайте его в переменной окружения `GEO_CODER_APIKEY` \
 При работе приложения ключ передаётся в контексте в переменной `g.geocoder_api_key`
 
 ```python
+env = Env()
+env.read_env()
+
 with app.app_context():
-    g.geocoder_api_key = 'my_geocoder_api_key'
+    g.geocoder_api_key = env('GEO_CODER_APIKEY')
 ```
 
 ## Как запустить тесты
