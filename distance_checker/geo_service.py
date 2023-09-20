@@ -6,7 +6,7 @@ from flask import g
 from geopy import Point
 
 from geopy.distance import distance
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 MKAD_POLYGON = (
     Point(55.774558, 37.842762),
@@ -125,8 +125,7 @@ class GeoObject(BaseModel):
     point: Optional[Point] = None
     is_in_mkad: Optional[bool] = None
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def model_post_init(self, __context: Any) -> None:
         self.point = self._get_point()
