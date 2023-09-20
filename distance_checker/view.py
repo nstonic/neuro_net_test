@@ -1,8 +1,8 @@
 import logging
 
 from flask import Blueprint, request
+from geopy.exc import GeopyError
 from pydantic import ValidationError
-from requests import HTTPError
 
 from .geo_service import ObjectNotFound, GeoObject
 
@@ -34,7 +34,7 @@ def check():
     except ObjectNotFound:
         data['error'] = "Object doesn't exist in that world"
         return data, 400
-    except HTTPError:
+    except GeopyError:
         data['error'] = 'GeoCoder error'
         return data, 415
 

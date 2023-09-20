@@ -1,7 +1,6 @@
 from typing import Optional, Any
 
 import geopy
-import requests
 import shapely
 from flask import g
 from geopy import Point
