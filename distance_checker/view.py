@@ -32,7 +32,7 @@ def check():
         data['error'] = 'JSON is not valid'
         return data, 400
     except ObjectNotFound:
-        data['error'] = "Object doesn't exist in that world"
+        data['error'] = "Object doesn't exist in this world"
         return data, 400
     except GeopyError:
         data['error'] = 'GeoCoder error'

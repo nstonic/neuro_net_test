@@ -19,9 +19,10 @@ success_cases = [
 ]
 
 error_cases = [
-    ({'address': ''},),
-    ({'address': 'asdfasdf'},),
-    ({'adres': 'Самара'},),
+    ({'address': None}, 'JSON is not valid'),
+    ({'address': ''}, 'JSON is not valid'),
+    ({'address': 'ыывапыва'}, "Object doesn't exist in this world"),
+    ({'adres': 'Самара'}, 'JSON is not valid'),
 ]
 
 
@@ -45,15 +46,16 @@ def test_check_success(data: dict, distance: float, is_in_mkad: bool):
     assert json_['success'] is True
 
 
-@pytest.mark.parametrize('data', error_cases)
-def test_check_errors(data: dict):
+@pytest.mark.parametrize('data, error', error_cases)
+def test_check_errors(data: dict, error: str):
     url = '/check/'
     with app.app_context():
         g.geocoder_api_key = env('GEO_CODER_APIKEY')
         response = client.post(url, json=data)
 
     assert response.status_code == 400
-
     json_ = response.json
+
+    assert json_['error'] == error
     assert json_['success'] is False
     assert isinstance(json_['error'], str)

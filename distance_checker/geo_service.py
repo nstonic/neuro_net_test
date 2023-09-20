@@ -135,6 +135,8 @@ class GeoObject(BaseModel):
     def _get_point(self) -> Point:
         geolocator = geopy.Yandex(g.geocoder_api_key)
         location = geolocator.geocode(self.address, exactly_one=True)
+        if not location:
+            raise ObjectNotFound
         return Point(location.latitude, location.longitude)
 
     def _in_mkad(self) -> bool:
