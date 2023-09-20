@@ -136,7 +136,7 @@ class GeoObject(BaseModel):
         location = geolocator.geocode(self.address, exactly_one=True)
         if not location:
             raise ObjectNotFound
-        return Point(location.latitude, location.longitude)
+        return location.point
 
     def _in_mkad(self) -> bool:
         nodes = [
