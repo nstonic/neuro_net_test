@@ -1,11 +1,14 @@
 import pytest
-from flask import Flask
+from environs import Env
+from flask import Flask, g
 
 from . import address_checker
 
 app = Flask(__name__)
 app.register_blueprint(address_checker, url_prefix='/check')
 client = app.test_client()
+env = Env()
+env.read_env()
 
 success_cases = [
     ({'address': 'Обводное шоссе, 10, посёлок Рублёво, Москва, 121500'}, 0.7, False),
@@ -25,7 +28,9 @@ error_cases = [
 @pytest.mark.parametrize('data, distance, is_in_mkad,', success_cases)
 def test_check_success(data: dict, distance: float, is_in_mkad: bool):
     url = '/check/'
-    response = client.post(url, json=data)
+    with app.app_context():
+        g.geocoder_api_key = env('GEO_CODER_APIKEY')
+        response = client.post(url, json=data)
 
     assert response.status_code == 200
 
@@ -43,7 +48,9 @@ def test_check_success(data: dict, distance: float, is_in_mkad: bool):
 @pytest.mark.parametrize('data', error_cases)
 def test_check_errors(data: dict):
     url = '/check/'
-    response = client.post(url, json=data)
+    with app.app_context():
+        g.geocoder_api_key = env('GEO_CODER_APIKEY')
+        response = client.post(url, json=data)
 
     assert response.status_code == 400
 

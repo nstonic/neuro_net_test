@@ -1,16 +1,13 @@
 from typing import Optional, Any
 
+import geopy
 import requests
 import shapely
-from environs import Env
+from flask import g
 from geopy import Point
 
 from geopy.distance import distance
 from pydantic import BaseModel
-
-env = Env()
-env.read_env()
-GEO_CODER_APIKEY = env('GEO_CODER_APIKEY')
 
 MKAD_POLYGON = (
     Point(55.774558, 37.842762),
@@ -133,28 +130,13 @@ class GeoObject(BaseModel):
         arbitrary_types_allowed = True
 
     def model_post_init(self, __context: Any) -> None:
-        self.point = self._get_point(GEO_CODER_APIKEY)
+        self.point = self._get_point()
         self.is_in_mkad = self._in_mkad()
 
-    def _get_point(self, api_key: str) -> Point:
-        base_url = 'https://geocode-maps.yandex.ru/1.x'
-        response = requests.get(
-            base_url,
-            params={
-                'geocode': self.address,
-                'apikey': api_key,
-                'format': 'json',
-            }
-        )
-        response.raise_for_status()
-        found_objects = response.json()['response']['GeoObjectCollection']['featureMember']
-
-        if not found_objects:
-            raise ObjectNotFound
-
-        most_relevant, *_ = found_objects
-        lon, lat = most_relevant['GeoObject']['Point']['pos'].split()
-        return Point(lat, lon)
+    def _get_point(self) -> Point:
+        geolocator = geopy.Yandex(g.geocoder_api_key)
+        location = geolocator.geocode(self.address, exactly_one=True)
+        return Point(location.latitude, location.longitude)
 
     def _in_mkad(self) -> bool:
         nodes = [
